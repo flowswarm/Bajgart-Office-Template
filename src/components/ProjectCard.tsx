@@ -13,13 +13,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
   const isEven = index % 2 === 0;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-20%" }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       className={cn(
-        "flex flex-col gap-12 py-24 border-t border-black/5",
+        "flex flex-col gap-12 py-24 border-t border-accent-blue/5",
         isEven ? "md:flex-row" : "md:flex-row-reverse"
       )}
     >
@@ -27,7 +27,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
       <div className="flex-1 max-w-md">
         <div className="flex flex-wrap gap-2 mb-6">
           {project.tags.map(tag => (
-            <span key={tag} className="px-4 py-1.5 border border-btn-secondary-border rounded-full text-[12px] text-text-secondary uppercase tracking-wider">
+            <span key={tag} className="px-4 py-1.5 border border-btn-secondary-border rounded-full text-[12px] text-text-secondary uppercase tracking-wider hover:border-accent-blue hover:text-accent-blue transition-colors">
               {tag}
             </span>
           ))}

@@ -1,15 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #FDFBFA;
-  --color-text-primary: #121212;
-  --color-text-secondary: #666666;
-  --color-accent-green: #00FF00;
-  --color-btn-secondary-border: #D0D0D0;
-  --color-link-color: #0F00FE;
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F0F4FF;
+  --color-text-primary: #0A0A1A;
+  --color-text-secondary: #5A6178;
+  --color-accent-blue: #2B4BFF;
+  --color-accent-blue-light: #4D6AFF;
+  --color-accent-blue-dark: #1A35CC;
+  --color-accent-green: #22C55E;
+  --color-btn-primary-bg: #2B4BFF;
+  --color-btn-primary-text: #FFFFFF;
+  --color-btn-secondary-border: #C8D1E8;
+  --color-link-color: #2B4BFF;
 
-  --font-serif: "Playfair Display", serif;
-  --font-sans: "Inter", sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "DM Sans", sans-serif;
 
   --radius-pill: 60px;
   --radius-card: 20px;
@@ -17,7 +25,7 @@
 
 @layer base {
   body {
-    @apply bg-bg-primary text-text-primary font-sans antialiased selection:bg-text-primary selection:text-bg-primary;
+    @apply bg-bg-primary text-text-primary font-sans antialiased selection:bg-accent-blue selection:text-white;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -28,40 +36,51 @@
 @layer utilities {
   .backdrop-blur-nav {
     backdrop-filter: blur(12px);
-    background-color: rgba(253, 251, 250, 0.85);
+    background-color: rgba(255, 255, 255, 0.88);
   }
 
   .pulse-green {
-    box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7);
-    animation: pulse 2s infinite;
+    animation: pulse-dot 2s ease-in-out infinite;
   }
 
-  @keyframes pulse {
-    0% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7);
-    }
-    70% {
+  @keyframes pulse-dot {
+    0%, 100% {
+      opacity: 1;
       transform: scale(1);
-      box-shadow: 0 0 0 10px rgba(0, 255, 0, 0);
     }
-    100% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
+    50% {
+      opacity: 0.6;
+      transform: scale(1.3);
     }
   }
 
   .marquee-track {
     display: flex;
     white-space: nowrap;
-    animation: marquee 30s linear infinite;
+    animation: marquee 40s linear infinite;
   }
 
   @keyframes marquee {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-}
 
-/* Custom font imports */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+  .carousel-track {
+    display: flex;
+    gap: 1rem;
+    width: max-content;
+  }
+
+  .carousel-track:hover {
+    animation-play-state: paused !important;
+  }
+
+  @keyframes carousel-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-25%); }
+  }
+
+  .gradient-hero {
+    background: linear-gradient(135deg, #FFFFFF 0%, #EDF0FF 40%, #F0F4FF 100%);
+  }
+}

@@ -1,5 +1,4 @@
-import React, { useEffect, useRef } from 'react';
-import { motion, useAnimation, useInView } from 'motion/react';
+import React from 'react';
 import { cn } from '@/src/lib/utils';
 
 interface ImageCarouselProps {
@@ -9,47 +8,34 @@ interface ImageCarouselProps {
 }
 
 export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, className, reverse = false }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Create a seamless loop by repeating images
+  // Create a seamless loop by repeating images 4x
   const displayImages = [...images, ...images, ...images, ...images];
+  const duration = images.length * 4;
 
   return (
-    <div className={cn("overflow-hidden w-full", className)} ref={containerRef}>
+    <div className={cn("overflow-hidden w-full", className)}>
       <div 
-        className={cn(
-          "flex gap-4 w-max",
-          reverse ? "animate-marquee-reverse" : "animate-marquee"
-        )}
+        className="carousel-track"
         style={{
-          animation: `marquee ${images.length * 5}s linear infinite`,
+          animation: `carousel-scroll ${duration}s linear infinite`,
           animationDirection: reverse ? 'reverse' : 'normal'
         }}
       >
         {displayImages.map((src, idx) => (
           <div 
             key={idx} 
-            className="flex-shrink-0 w-[300px] md:w-[400px] aspect-[4/3] rounded-2xl overflow-hidden bg-zinc-100"
+            className="flex-shrink-0 w-[280px] md:w-[360px] rounded-2xl overflow-hidden bg-zinc-100"
           >
             <img 
               src={src} 
-              alt={`Project image ${idx}`} 
-              className="w-full h-full object-cover"
+              alt={`Project image ${(idx % images.length) + 1}`} 
+              className="w-full h-auto object-contain"
+              loading="lazy"
               referrerPolicy="no-referrer"
             />
           </div>
         ))}
       </div>
-
-      <style>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.33%); }
-        }
-        .animate-marquee:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
     </div>
   );
 };
