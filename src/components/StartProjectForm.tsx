@@ -162,19 +162,19 @@ export function StartProjectForm({ isOpen, onClose }: StartProjectFormProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.97 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-2xl max-h-[90vh] mx-4 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-2xl max-h-[90vh] mx-4 bg-white rounded-[24px] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col"
           >
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 z-10 w-10 h-10 rounded-full bg-bg-secondary flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-gray-200 transition-all"
+              className="absolute top-4 right-4 md:top-5 md:right-5 z-10 w-10 h-10 rounded-full bg-bg-secondary flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-gray-200 transition-all"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Progress Bar */}
             {!isSubmitted && (
-              <div className="px-8 pt-8 pb-0">
+              <div className="px-6 pt-16 md:px-8 md:pt-8 pb-0">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="flex-1 h-1 rounded-full bg-bg-secondary overflow-hidden">
                     <motion.div
@@ -192,7 +192,7 @@ export function StartProjectForm({ isOpen, onClose }: StartProjectFormProps) {
             )}
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-8 pb-8">
+            <div className="flex-1 overflow-y-auto px-6 pb-6 md:px-8 md:pb-8 pt-4 md:pt-0">
               <AnimatePresence mode="wait" custom={direction}>
                 {isSubmitted ? (
                   /* ─── Success State ─── */

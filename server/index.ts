@@ -110,15 +110,87 @@ app.post('/api/book-call', async (req, res) => {
   }
 });
 
+// ─── Stripe ─────────────────────────────────────────────────────────
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2025-04-30.basil' as any,
+});
+
+const BASE_URL = process.env.APP_URL || 'http://localhost:3001';
+
+// Dev Sprint — One-time $1,000 payment
+let sprintPaymentLink: string | null = null;
+let retainerPaymentLink: string | null = null;
+
+// Create payment links on startup
+async function createPaymentLinks() {
+  try {
+    // Dev Sprint — one-time $1,000
+    const sprintProduct = await stripe.products.create({
+      name: 'Dev Sprint',
+      description: 'A production-ready website, designed, built, and shipped in 5 days or less — with continuous support.',
+    });
+    const sprintPrice = await stripe.prices.create({
+      product: sprintProduct.id,
+      unit_amount: 100000,
+      currency: 'usd',
+    });
+    const sprintLink = await stripe.paymentLinks.create({
+      line_items: [{ price: sprintPrice.id, quantity: 1 }],
+      allow_promotion_codes: true,
+      after_completion: { type: 'redirect', redirect: { url: 'https://fosterbranddevelopment.com?payment=success&plan=sprint' } },
+    });
+    sprintPaymentLink = sprintLink.url;
+    console.log(`💳 Sprint payment link: ${sprintPaymentLink}`);
+
+    // Dev Retainer — recurring $150/mo
+    const retainerProduct = await stripe.products.create({
+      name: 'Dev Retainer',
+      description: 'Ongoing monthly maintenance, updates, and priority support for your website.',
+    });
+    const retainerPrice = await stripe.prices.create({
+      product: retainerProduct.id,
+      unit_amount: 15000,
+      currency: 'usd',
+      recurring: { interval: 'month' },
+    });
+    const retainerLink = await stripe.paymentLinks.create({
+      line_items: [{ price: retainerPrice.id, quantity: 1 }],
+      allow_promotion_codes: true,
+      after_completion: { type: 'redirect', redirect: { url: 'https://fosterbranddevelopment.com?payment=success&plan=retainer' } },
+    });
+    retainerPaymentLink = retainerLink.url;
+    console.log(`💳 Retainer payment link: ${retainerPaymentLink}`);
+  } catch (err: any) {
+    console.error('❌ Failed to create Stripe payment links:', err?.message);
+  }
+}
+
+app.get('/api/checkout/links', (_req, res) => {
+  res.json({
+    sprint: sprintPaymentLink,
+    retainer: retainerPaymentLink,
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`✅ API server running on http://localhost:${PORT}`);
+
+  // Verify Gmail SMTP
   transporter.verify((err) => {
     if (err) {
       console.error('❌ SMTP auth failed:', err.message);
-      console.error('   → Regenerate your Gmail App Password at: https://myaccount.google.com/apppasswords');
-      console.error('   → Then visit: https://accounts.google.com/DisplayUnlockCaptcha');
     } else {
       console.log('✅ Gmail SMTP ready');
     }
   });
+
+  // Verify Stripe
+  if (process.env.STRIPE_SECRET_KEY) {
+    console.log('✅ Stripe configured (live mode)');
+    createPaymentLinks();
+  } else {
+    console.warn('⚠️  STRIPE_SECRET_KEY not set — checkout will not work');
+  }
 });

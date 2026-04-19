@@ -19,7 +19,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
       viewport={{ once: true, margin: "-20%" }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       className={cn(
-        "flex flex-col gap-12 py-24 border-t border-accent-blue/5",
+        "flex flex-col gap-8 md:gap-12 py-16 md:py-24 border-t border-accent-blue/5",
         isEven ? "md:flex-row" : "md:flex-row-reverse"
       )}
     >
@@ -32,8 +32,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
             </span>
           ))}
         </div>
-        <h3 className="text-4xl md:text-5xl mb-6">{project.title}</h3>
-        <p className="text-text-secondary text-lg leading-relaxed">
+        <h3 className="text-3xl md:text-5xl mb-4 md:mb-6 leading-tight">{project.title}</h3>
+        <p className="text-text-secondary text-base md:text-lg leading-relaxed">
           {project.description}
         </p>
       </div>

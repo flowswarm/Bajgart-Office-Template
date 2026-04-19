@@ -6,12 +6,45 @@ import { ProjectCard } from './components/ProjectCard';
 import { Modal } from './components/Modal';
 import { StartProjectForm } from './components/StartProjectForm';
 import { PROJECTS, PLAYGROUND_ITEMS } from './data';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, CreditCard, Check, X } from 'lucide-react';
 
 export default function App() {
   const [isPricingOpen, setIsPricingOpen] = React.useState(false);
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
   const [isProjectFormOpen, setIsProjectFormOpen] = React.useState(false);
+  const [paymentStatus, setPaymentStatus] = React.useState<'success' | 'cancelled' | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = React.useState<string | null>(null);
+  const [paymentLinks, setPaymentLinks] = React.useState<{ sprint: string | null; retainer: string | null }>({ sprint: null, retainer: null });
+
+  // Detect payment result from Stripe redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    if (payment === 'success' || payment === 'cancelled') {
+      setPaymentStatus(payment);
+      window.history.replaceState({}, '', window.location.pathname);
+      setTimeout(() => setPaymentStatus(null), 8000);
+    }
+  }, []);
+
+  // Fetch Stripe payment links on mount
+  useEffect(() => {
+    fetch('/api/checkout/links')
+      .then(r => r.json())
+      .then(data => setPaymentLinks(data))
+      .catch(() => {});
+  }, []);
+
+  const handleCheckout = (plan: 'sprint' | 'retainer') => {
+    const url = paymentLinks[plan];
+    if (url) {
+      setCheckoutLoading(plan);
+      window.location.href = url;
+    } else {
+      alert('Payment links are still loading. Please try again in a moment.');
+    }
+  };
+
 
   useEffect(() => {
     const lenis = new Lenis();
@@ -25,20 +58,62 @@ export default function App() {
 
   return (
     <div id="top" className="min-h-screen selection:bg-accent-blue selection:text-white">
+      {/* Payment Status Toast */}
+      {paymentStatus && (
+        <motion.div
+          initial={{ opacity: 0, y: -40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -40 }}
+          className={`fixed top-24 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 max-w-md ${
+            paymentStatus === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-amber-50 border border-amber-200 text-amber-800'
+          }`}
+        >
+          {paymentStatus === 'success' ? (
+            <>
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <Check className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-medium">Payment successful!</p>
+                <p className="text-sm opacity-70">Thank you — we'll be in touch within 24 hours.</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+                <X className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-medium">Checkout cancelled</p>
+                <p className="text-sm opacity-70">No charge was made. You can try again anytime.</p>
+              </div>
+            </>
+          )}
+          <button
+            onClick={() => setPaymentStatus(null)}
+            className="ml-2 p-1 hover:bg-black/5 rounded-full transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </motion.div>
+      )}
+
       <Navbar 
         onOpenPricing={() => setIsPricingOpen(true)} 
         onOpenAbout={() => setIsAboutOpen(true)} 
         onOpenProject={() => setIsProjectFormOpen(true)}
       />
 
-      <main className="max-w-[1400px] mx-auto px-6 pt-40 pb-20">
+      <main className="max-w-[1400px] mx-auto px-4 md:px-6 pt-28 md:pt-40 pb-16 md:pb-20">
         {/* Hero Section */}
-        <section className="relative min-h-[70vh] flex flex-col items-center justify-center text-center mb-40">
+        <section className="relative min-h-[85vh] md:min-h-[70vh] flex flex-col items-center justify-center text-center mb-24 md:mb-40">
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-5xl md:text-7xl lg:text-[100px] leading-[1.1] max-w-5xl mb-12"
+            className="text-4xl sm:text-5xl md:text-7xl lg:text-[100px] leading-[1.1] max-w-5xl mb-8 md:mb-12"
           >
             Your <span className="italic">shortcut</span>
             <br />
@@ -51,7 +126,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="text-text-secondary text-sm uppercase tracking-[0.2em] mb-12"
+            className="text-text-secondary text-xs md:text-sm uppercase tracking-[0.1em] md:tracking-[0.2em] mb-12 max-w-[280px] md:max-w-none mx-auto"
           >
             for startups and founders who need speed, quality, and results
           </motion.p>
@@ -72,10 +147,10 @@ export default function App() {
         </section>
 
         {/* Value Prop Section */}
-        <section className="mb-60">
-          <div className="grid md:grid-cols-2 gap-20 items-start">
+        <section className="mb-32 md:mb-60">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-start">
             <div>
-              <h2 className="text-5xl md:text-7xl leading-tight mb-12">
+              <h2 className="text-4xl sm:text-5xl md:text-7xl leading-tight mb-8 md:mb-12">
                 Shipped in <span className="italic">two weeks max</span> and supported <span className="italic">continuously.</span>
               </h2>
               <div className="space-y-8 text-lg text-text-secondary">
@@ -125,8 +200,8 @@ export default function App() {
           </div>
 
           {/* Ticker Strip */}
-          <div className="mt-40 border-y border-accent-blue/5 py-8 overflow-hidden">
-            <div className="marquee-track flex gap-20 text-sm uppercase tracking-[0.3em] font-medium text-text-secondary">
+          <div className="mt-24 md:mt-40 border-y border-accent-blue/5 py-8 overflow-hidden">
+            <div className="marquee-track flex gap-12 md:gap-20 text-xs md:text-sm uppercase tracking-[0.2em] md:tracking-[0.3em] font-medium text-text-secondary">
               {Array(10).fill("Ship faster · Convert more · Scale smarter · Build better · Launch sooner").map((text, i) => (
                 <span key={i} className="whitespace-nowrap">{text}</span>
               ))}
@@ -135,9 +210,9 @@ export default function App() {
         </section>
 
         {/* Portfolio Section */}
-        <section id="portfolio" className="mb-60">
-          <div className="mb-20">
-             <h2 className="text-5xl md:text-7xl">Here's what <span className="italic">shipping fast</span> looks like.</h2>
+        <section id="portfolio" className="mb-32 md:mb-60">
+          <div className="mb-12 md:mb-20">
+             <h2 className="text-4xl sm:text-5xl md:text-7xl">Here's what <span className="italic">shipping fast</span> looks like.</h2>
           </div>
           <div className="flex flex-col">
             {PROJECTS.map((project, i) => (
@@ -147,8 +222,8 @@ export default function App() {
         </section>
 
         {/* Lab / Playground Section */}
-        <section id="playground" className="mb-60">
-          <div className="mb-20">
+        <section id="playground" className="mb-32 md:mb-60">
+          <div className="mb-12 md:mb-20">
              <p className="text-sm uppercase tracking-widest text-text-secondary mb-4">The Lab</p>
              <p className="text-text-secondary text-xl max-w-2xl">
                Side projects, open-source experiments, and late-night prototypes that we just had to build.
@@ -177,8 +252,8 @@ export default function App() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="text-center py-40 border-t border-accent-blue/5">
-          <h2 className="text-5xl md:text-8xl mb-8">
+        <section className="text-center py-24 md:py-40 border-t border-accent-blue/5">
+          <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl mb-6 md:mb-8">
             Make the vision clear.<br />
             Make the launch <span className="italic">unforgettable.</span>
           </h2>
@@ -230,10 +305,10 @@ export default function App() {
         <div className="space-y-12">
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-widest text-text-secondary">Process + Pricing</p>
-            <h2 className="text-5xl md:text-6xl">1. Dev Sprint</h2>
-            <p className="text-2xl md:text-3xl italic text-text-secondary">Designed, built, and shipped in 5 days or less.</p>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl break-words">1. Dev Sprint</h2>
+            <p className="text-xl md:text-3xl italic text-text-secondary">Designed, built, and shipped in 5 days or less.</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-12 text-lg text-text-secondary">
+          <div className="grid md:grid-cols-2 gap-12 text-base md:text-lg text-text-secondary">
             <div className="space-y-6">
               <p>No layers. No overhead. Just senior developers building at full speed. This sprint is for business owners who need a production-ready website — not a prototype, not a mock-up — a real, deployed, high-performance site with continuous support included.</p>
               <div className="pt-6">
@@ -278,6 +353,14 @@ export default function App() {
                   <li className="flex items-center gap-2"><span className="text-accent-blue">✓</span> CMS, forms & analytics</li>
                   <li className="flex items-center gap-2"><span className="text-accent-blue">✓</span> Continuous support included</li>
                 </ul>
+                <button
+                  onClick={() => handleCheckout('sprint')}
+                  disabled={checkoutLoading === 'sprint'}
+                  className="mt-6 w-full bg-accent-blue text-white px-6 py-3 rounded-full text-sm font-medium flex items-center justify-center gap-2 hover:bg-accent-blue-dark hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-60 disabled:scale-100"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  {checkoutLoading === 'sprint' ? 'Redirecting…' : 'Pay $1,000 — Get started'}
+                </button>
               </div>
               <div className="p-8 border border-accent-blue/10 rounded-3xl">
                 <h4 className="text-2xl mb-2">Dev Retainer</h4>
@@ -289,6 +372,14 @@ export default function App() {
                   <li className="flex items-center gap-2"><span className="text-accent-blue">✓</span> Performance monitoring</li>
                   <li className="flex items-center gap-2"><span className="text-accent-blue">✓</span> Hosting management</li>
                 </ul>
+                <button
+                  onClick={() => handleCheckout('retainer')}
+                  disabled={checkoutLoading === 'retainer'}
+                  className="mt-6 w-full border-2 border-accent-blue text-accent-blue px-6 py-3 rounded-full text-sm font-medium flex items-center justify-center gap-2 hover:bg-accent-blue hover:text-white hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-60 disabled:scale-100"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  {checkoutLoading === 'retainer' ? 'Redirecting…' : 'Subscribe — $150/mo'}
+                </button>
               </div>
               <div className="mt-8 flex flex-col gap-4">
                 <button 
@@ -308,10 +399,10 @@ export default function App() {
         <div className="space-y-12">
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-widest text-text-secondary">About</p>
-            <h2 className="text-5xl md:text-6xl">Foster Brand Development</h2>
-            <p className="text-2xl md:text-3xl italic text-text-secondary">A development studio built for founders.</p>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl break-words">Foster Brand Development</h2>
+            <p className="text-xl md:text-3xl italic text-text-secondary">A development studio built for founders.</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-12 text-lg text-text-secondary">
+          <div className="grid md:grid-cols-2 gap-12 text-base md:text-lg text-text-secondary">
             <div className="space-y-6">
               <p>Foster Brand Development was founded on a simple belief: startups deserve world-class engineering without the agency markup, the endless meetings, or the 3-month timelines.</p>
               <p>We're a small, senior team of engineers and designers who build production-ready websites and web applications at startup speed. Every project is led by a senior developer — no handoffs, no junior devs learning on your dime.</p>
