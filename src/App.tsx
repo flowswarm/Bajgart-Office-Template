@@ -14,7 +14,12 @@ export default function App() {
   const [isProjectFormOpen, setIsProjectFormOpen] = React.useState(false);
   const [paymentStatus, setPaymentStatus] = React.useState<'success' | 'cancelled' | null>(null);
   const [checkoutLoading, setCheckoutLoading] = React.useState<string | null>(null);
-  const [paymentLinks, setPaymentLinks] = React.useState<{ sprint: string | null; retainer: string | null }>({ sprint: null, retainer: null });
+
+  // Stripe Payment Links (permanent, hosted by Stripe)
+  const paymentLinks = {
+    sprint: 'https://buy.stripe.com/fZu28rdgc0wg7iycGfaVa06',
+    retainer: 'https://buy.stripe.com/aFafZh3FCa6Q8mC0XxaVa07',
+  };
 
   // Detect payment result from Stripe redirect
   useEffect(() => {
@@ -27,22 +32,9 @@ export default function App() {
     }
   }, []);
 
-  // Fetch Stripe payment links on mount
-  useEffect(() => {
-    fetch('/api/checkout/links')
-      .then(r => r.json())
-      .then(data => setPaymentLinks(data))
-      .catch(() => {});
-  }, []);
-
   const handleCheckout = (plan: 'sprint' | 'retainer') => {
-    const url = paymentLinks[plan];
-    if (url) {
-      setCheckoutLoading(plan);
-      window.location.href = url;
-    } else {
-      alert('Payment links are still loading. Please try again in a moment.');
-    }
+    setCheckoutLoading(plan);
+    window.location.href = paymentLinks[plan];
   };
 
 
